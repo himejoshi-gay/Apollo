@@ -13,7 +13,7 @@ Apollo is a **monorepo** containing all the essential components required to run
 
 ## Preview 🖼️
 
-![preview](./.github/preview.jpg)
+![preview](./.github/preview.png)
 
 ## Components 🧩
 
