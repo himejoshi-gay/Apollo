@@ -1,0 +1,12 @@
+[submodule "Sunrise"]
+	path = Sunrise
+	url = https://github.com/himejoshi-gay/Himejoshi
+[submodule "Observatory"]
+	path = Observatory
+	url = https://github.com/himejoshi-gay/Observatory
+[submodule "Sunset"]
+	path = Sunset
+	url = https://github.com/himejoshi-gay/Moonlight
+[submodule "Sunshine"]
+	path = Sunshine
+	url = https://github.com/himejoshi-gay/asteriaAI

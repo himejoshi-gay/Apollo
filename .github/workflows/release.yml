@@ -1,0 +1,132 @@
+name: Create GitHub release and changelog
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - initial
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  changelog:
+    permissions:
+      contents: write
+    name: Create GitHub release and changelog
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Update submodules
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          # Initialize and update submodules to latest commits
+          git submodule update --init --recursive --remote
+
+          # Check if there are any changes to submodules
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Submodules have been updated"
+            git add .
+            git commit -m "chore: update submodules" || echo "No changes to commit"
+            git push origin HEAD:main || echo "Nothing to push"
+          else
+            echo "No submodule updates available"
+          fi
+
+      - name: Get latest tag or set initial version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            BUMP_TYPE="${{ github.event.inputs.version_bump }}"
+            
+            if [ -z "$LATEST_TAG" ] || [ "$BUMP_TYPE" == "initial" ]; then
+              NEW_VERSION="v0.0.1"
+            else
+              VERSION=${LATEST_TAG#v}
+              IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+              MAJOR=${VERSION_PARTS[0]}
+              MINOR=${VERSION_PARTS[1]}
+              PATCH=${VERSION_PARTS[2]}
+              
+              case "$BUMP_TYPE" in
+                major)
+                  MAJOR=$((MAJOR + 1))
+                  MINOR=0
+                  PATCH=0
+                  ;;
+                minor)
+                  MINOR=$((MINOR + 1))
+                  PATCH=0
+                  ;;
+                patch)
+                  PATCH=$((PATCH + 1))
+                  ;;
+              esac
+              
+              NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+            fi
+            
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "Created new version: $NEW_VERSION"
+          else
+            echo "new_version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up git-cliff
+        uses: kenji-miyake/setup-git-cliff@v1
+
+      - name: Generate changelog file
+        uses: orhun/git-cliff-action@v4
+        id: git-cliff
+        with:
+          config: cliff.toml
+          args: --verbose --tag ${{ steps.version.outputs.new_version }}
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update .version file
+        run: |
+          echo "SOLAR_SYSTEM_VERSION=${{ steps.version.outputs.new_version }}" > .version
+
+      - name: Commit changelog and version file
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: "CHANGELOG.md .version"
+          author_name: Git Cliff
+          committer_name: Git Cliff
+          message: "chore: update CHANGELOG.md and .version"
+          push: origin HEAD:main
+
+      - name: Create and push tag (manual trigger only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "${{ steps.version.outputs.new_version }}" -m "Release ${{ steps.version.outputs.new_version }}"
+          git push origin "${{ steps.version.outputs.new_version }}"
+
+      - name: Generate release notes and create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ steps.version.outputs.new_version }}"
+          NOTES=$(git cliff --latest -c cliff.toml)
+          gh release create "$TAG_NAME" --verify-tag --title "$TAG_NAME" --notes "$NOTES"
