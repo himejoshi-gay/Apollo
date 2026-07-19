@@ -118,7 +118,7 @@ Before you begin, ensure you have the following installed:
 > For more in-depth documentation with detailed setup instructions, visit [the documentation](https://docs.himejoshi.gay/).
 
 > [!TIP]
-> Join our [Discord server](https://discord.gg/himejoshi) if you have any questions or just want to chill with us!
+> Join our [Discord server](https://discord.gg/osugame) if you have any questions or just want to chill with us!
 
 ### Hosting on the Internet 🌐
 
