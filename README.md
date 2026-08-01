@@ -60,7 +60,7 @@ Before you begin, ensure you have the following installed:
    ```
    
    Fill in the required parameters in both files.
-   
+
   > [!IMPORTANT]
   > Make sure to edit `WEB_DOMAIN=` in `.env` to your actual domain that you plan to host on.
    
@@ -119,6 +119,22 @@ Before you begin, ensure you have the following installed:
 
 > [!TIP]
 > Join our [Discord server](https://discord.gg/osugame) if you have any questions or just want to chill with us!
+
+### Discord registration verification
+
+Create an application in the Discord Developer Portal and add this exact OAuth2 redirect URI, replacing the placeholder with your configured domain:
+
+```text
+https://api.<WEB_DOMAIN>/auth/discord/callback
+```
+
+The registration flow requests only the `identify` and `email` scopes. Copy the application's client ID and client secret to `DISCORD_OAUTH_CLIENT_ID` and `DISCORD_OAUTH_CLIENT_SECRET` in `.env`. Generate the separate, stable registration identity pepper with `openssl rand -hex 32` and store it as `REGISTRATION_IDENTITY_SECRET`; keep it secret and do not regenerate it during routine deployments. Discord verification is enabled by default, and Discord accounts must be at least seven days old.
+
+Registration accepts verified Discord emails only from the established providers in `REGISTRATION_ALLOWED_EMAIL_DOMAINS`. Keep the default exact-domain list or add another legitimate provider when needed; do not use suffix or wildcard matching.
+
+`TRUSTED_PROXY_NETWORKS` is the immediate Caddy-to-container peer, not a list of public client or CDN addresses. It defaults to empty so forwarded headers fail closed; set it to the exact Docker bridge gateway `/32` observed by Sunrise on the production host. Do not trust the entire Docker bridge pool. The production Compose file binds Sunrise to loopback, so public traffic must enter through Caddy.
+
+If a CDN such as Cloudflare sits in front of Caddy, separately configure Caddy's global `trusted_proxies` with the CDN's current exact published CIDRs and enable `trusted_proxies_strict`. Do not trust arbitrary forwarded headers or broad public ranges, and prevent direct traffic to the origin. The supplied Caddy proxy sends Sunrise one sanitized `X-Forwarded-For` value derived from Caddy's parsed `{client_ip}`.
 
 ### Hosting on the Internet 🌐
 
