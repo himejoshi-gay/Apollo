@@ -6,7 +6,9 @@ services:
       context: ./Sunrise
       dockerfile: Dockerfile
     ports:
-      - "127.0.0.1:${SUNRISE_SERVER_PORT}:${SUNRISE_SERVER_PORT}"
+      # Caddy runs on the WireGuard peer, so publish only on this VM's tunnel
+      # address. This keeps Sunrise off the LAN while allowing the live proxy.
+      - "${SUNRISE_BIND_ADDRESS:-10.100.0.2}:${SUNRISE_SERVER_PORT}:${SUNRISE_SERVER_PORT}"
     volumes:
       - ./Sunrise/Data:/app/Data
       - ./Sunrise.Config.Production.json:/app/appsettings.Production.json
