@@ -61,7 +61,7 @@ services:
       observatory:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5147/health"]
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/5147 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && read -r status <&3 && [[ \"$$status\" == *\" 200 \"* ]]'"]
       interval: 10s
       timeout: 5s
       retries: 5
