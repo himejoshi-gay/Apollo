@@ -7,7 +7,10 @@ a.{$WEB_DOMAIN},
 api.{$WEB_DOMAIN},
 osu.{$WEB_DOMAIN},
 assets.{$WEB_DOMAIN} {
-    reverse_proxy localhost:{$SUNRISE_SERVER_PORT:3912} {
+    # Compose publishes Sunrise only on the IPv4 loopback interface. Use the
+    # literal address so systems that resolve localhost to ::1 do not produce
+    # a 502 while the container itself is healthy.
+    reverse_proxy 127.0.0.1:{$SUNRISE_SERVER_PORT:3912} {
         # Send exactly one client address. Caddy ignores untrusted inbound
         # X-Forwarded-For values when determining {client_ip}.
         header_up X-Forwarded-For {client_ip}
