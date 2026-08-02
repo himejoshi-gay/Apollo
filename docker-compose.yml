@@ -6,7 +6,7 @@ services:
       context: ./Sunrise
       dockerfile: Dockerfile
     ports:
-      - "127.0.0.1:${SUNRISE_SERVER_PORT}:${SUNRISE_SERVER_PORT}"
+      - "${SUNRISE_BIND_ADDRESS:-127.0.0.1}:${SUNRISE_SERVER_PORT}:${SUNRISE_SERVER_PORT}"
     volumes:
       - ./Sunrise/Data:/app/Data
       - ./Sunrise.Config.Production.json:/app/appsettings.Production.json
@@ -24,7 +24,9 @@ services:
       API_TOKEN_SECRET: ${SUNRISE_API_TOKEN_SECRET}
       DISCORD_OAUTH_CLIENT_ID: ${DISCORD_OAUTH_CLIENT_ID}
       DISCORD_OAUTH_CLIENT_SECRET: ${DISCORD_OAUTH_CLIENT_SECRET}
+      DISCORD_OAUTH_ACCOUNT_SETTINGS_URL: https://${WEB_DOMAIN}/settings
       REGISTRATION_IDENTITY_SECRET: ${REGISTRATION_IDENTITY_SECRET}
+      ASTERIA_LINK_API_KEY: ${ASTERIA_LINK_API_KEY}
       REQUIRE_DISCORD_REGISTRATION: ${REQUIRE_DISCORD_REGISTRATION}
       DISCORD_MIN_ACCOUNT_AGE_DAYS: ${DISCORD_MIN_ACCOUNT_AGE_DAYS}
       REGISTRATION_ALLOWED_EMAIL_DOMAINS: ${REGISTRATION_ALLOWED_EMAIL_DOMAINS}
@@ -61,7 +63,7 @@ services:
       observatory:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5147/health"]
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/5147 && printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && read -r status <&3 && [[ \"$$status\" == *\" 200 \"* ]]'"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -154,6 +156,7 @@ services:
       NEW_SCORES_CHANNED_ID: ${SUNSHINE_NEW_SCORES_CHANNED_ID}
       BEATMAPS_STATUSES_CHANNED_ID: ${SUNSHINE_BEATMAPS_STATUSES_CHANNED_ID}
       SUNRISE_URI: ${WEB_DOMAIN}
+      ASTERIA_LINK_API_KEY: ${ASTERIA_LINK_API_KEY}
     deploy:
       resources:
         limits:

@@ -1,6 +1,6 @@
 [submodule "Sunrise"]
 	path = Sunrise
-	url = https://github.com/himejoshi-gay/Himejoshi
+	url = https://github.com/BESINAPERICULOASA/Himejoshi
 	branch = main
 [submodule "Observatory"]
 	path = Observatory
@@ -8,9 +8,9 @@
 	branch = main
 [submodule "Sunset"]
 	path = Sunset
-	url = https://github.com/himejoshi-gay/Moonlight
+	url = https://github.com/BESINAPERICULOASA/Moonlight
 	branch = main
 [submodule "Sunshine"]
 	path = Sunshine
-	url = https://github.com/himejoshi-gay/asteriaAI
+	url = https://github.com/BESINAPERICULOASA/asteriaAI
 	branch = main

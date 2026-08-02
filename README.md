@@ -132,7 +132,7 @@ The registration flow requests only the `identify` and `email` scopes. Copy the 
 
 Registration accepts verified Discord emails only from the established providers in `REGISTRATION_ALLOWED_EMAIL_DOMAINS`. Keep the default exact-domain list or add another legitimate provider when needed; do not use suffix or wildcard matching.
 
-`TRUSTED_PROXY_NETWORKS` is the immediate Caddy-to-container peer, not a list of public client or CDN addresses. It defaults to empty so forwarded headers fail closed; set it to the exact Docker bridge gateway `/32` observed by Sunrise on the production host. Do not trust the entire Docker bridge pool. The production Compose file binds Sunrise to loopback, so public traffic must enter through Caddy.
+`TRUSTED_PROXY_NETWORKS` is the immediate Caddy-to-container peer, not a list of public client or CDN addresses. It defaults to empty so forwarded headers fail closed; set it to the exact Docker bridge gateway `/32` observed by Sunrise on the production host. Do not trust the entire Docker bridge pool. The production Compose file binds Sunrise to `SUNRISE_BIND_ADDRESS`, which defaults to loopback. If Caddy runs on a WireGuard peer, set this to the host's exact tunnel address; never use `0.0.0.0` merely to make the proxy work.
 
 If a CDN such as Cloudflare sits in front of Caddy, separately configure Caddy's global `trusted_proxies` with the CDN's current exact published CIDRs and enable `trusted_proxies_strict`. Do not trust arbitrary forwarded headers or broad public ranges, and prevent direct traffic to the origin. The supplied Caddy proxy sends Sunrise one sanitized `X-Forwarded-For` value derived from Caddy's parsed `{client_ip}`.
 
